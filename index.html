@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Asistente Lesiones Musculoesqueléticas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 10px;
+    }
+    h1 {
+      font-size: 1.4rem;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      margin-top: 5px;
+      padding: 5px;
+    }
+    select, button {
+      margin-top: 5px;
+      padding: 5px 10px;
+    }
+    .respuesta {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      white-space: pre-wrap;
+      background: #f9f9f9;
+    }
+    .small {
+      font-size: 0.85rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Asistente de Lesiones Musculoesqueléticas</h1>
+
+  <label for="modulo">Módulo</label>
+  <select id="modulo">
+    <option value="clinico">Clínico general</option>
+    <option value="monitoreo">Monitoreo y frecuencia</option>
+  </select>
+
+  <label for="pregunta">Pregunta en lenguaje natural</label>
+  <textarea id="pregunta" placeholder="Escribí tu consulta"></textarea>
+
+  <label class="small">
+    <input type="checkbox" id="explain" />
+    Mostrar pasos intermedios (Cypher y resultados crudos)
+  </label>
+
+  <button id="btn-enviar">Enviar consulta</button>
+
+  <div id="respuesta" class="respuesta"></div>
+
+  <script>
+    const btn = document.getElementById("btn-enviar");
+    const preguntaInput = document.getElementById("pregunta");
+    const moduloSelect = document.getElementById("modulo");
+    const explainCheckbox = document.getElementById("explain");
+    const respuestaDiv = document.getElementById("respuesta");
+
+    btn.addEventListener("click", async () => {
+      const question = preguntaInput.value.trim();
+      const modulo = moduloSelect.value;
+      const explain = explainCheckbox.checked;
+
+      if (!question) {
+        respuestaDiv.textContent = "Por favor, escribí una pregunta.";
+        return;
+      }
+
+      let endpoint = "";
+      if (modulo === "clinico") {
+        endpoint = "/query_clinico";
+      } else if (modulo === "monitoreo") {
+        endpoint = "/query_monitoreo";
+      }
+
+      const url = `http://localhost:8000${endpoint}?` + new URLSearchParams({
+        question,
+        explain: explain ? "true" : "false",
+      });
+
+      respuestaDiv.textContent = "Consultando al asistente...";
+
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) {
+          throw new Error("Error HTTP: " + resp.status);
+        }
+        const data = await resp.json();
+
+        // Si explain=false, el backend devuelve {"answer": "..."}
+        // Si explain=true, devuelve todo el objeto con pasos intermedios
+        if (!explain && data.answer) {
+          respuestaDiv.textContent = data.answer;
+        } else {
+          respuestaDiv.textContent = JSON.stringify(data, null, 2);
+        }
+      } catch (err) {
+        respuestaDiv.textContent = "Error al consultar el backend: " + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
