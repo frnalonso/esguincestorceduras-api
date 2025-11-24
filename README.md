@@ -18,7 +18,6 @@ Este proyecto es un prototipo API/web para el análisis de **esguinces y torcedu
 - Carpeta `neo4j/` → scripts o configuraciones relativas a la base de datos Neo4j.  
 - `index.html` → página de interfaz básica.  
 - `.gitignore` → exclusiones de archivos que no deben subirse.  
-- `enviroment.env` → archivo de variables de entorno **(no debería incluirse en el repo, moverlo a `.gitignore`)**.
 
 ## Requisitos
 
